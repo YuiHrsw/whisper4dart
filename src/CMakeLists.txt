@@ -17,9 +17,9 @@ if(UNIX)
   set(CMAKE_BUILD_RPATH "$ORIGIN")
 endif()
 
-
+if(UNIX)
 set(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/lib")
-
+endif()
 # 设置生成动态库
 SET(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries" FORCE)
 
