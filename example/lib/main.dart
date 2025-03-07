@@ -4,12 +4,30 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:whisper_dart/whisper_dart.dart' as whisper_dart;
-
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 void main() {
   
   runApp(const MyApp());
 }
 
+Future<String> inference(String inputPath) async{
+   
+final Directory tempDirectory = await getTemporaryDirectory();
+final ByteData documentBytes = await rootBundle.load(inputPath);
+
+
+final String logPath = '${tempDirectory.path}/log.txt';
+await File(inputPath).writeAsBytes(
+    documentBytes.buffer.asUint8List(),
+);
+var buffer=await rootBundle.load("assets/ggml-base.en.bin");
+Uint8List model=buffer.buffer.asUint8List();
+var cparams=whisper_dart.createContextDefaultParams();
+var whisper=whisper_dart.Whisper(model,cparams);
+return whisper.infer(inputPath,logPath: logPath,outputMode: "srt",numProcessors: 1);
+
+}
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -47,9 +65,9 @@ class _MyAppState extends State<MyApp> {
                   textAlign: TextAlign.center,
                 ),
                 spacerSmall,
-                ElevatedButton(onPressed:(){
-                  print(Directory.current.path);
-                  whisper_dart.minimumInferenceImpl("assets/jfk.wav");},child: spacerSmall,),
+                ElevatedButton(onPressed:()async{
+                  
+                  print(await inference("assets/jfk.wav"));},child: spacerSmall,),
                 spacerSmall,
                 
               ],
