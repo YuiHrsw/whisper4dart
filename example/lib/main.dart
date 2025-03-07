@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
                 spacerSmall,
                 ElevatedButton(onPressed:(){
                   print(Directory.current.path);
-                  whisper_dart.minimumInferenceImpl("sample/jfk.wav");},child: spacerSmall,),
+                  whisper_dart.minimumInferenceImpl("assets/jfk.wav");},child: spacerSmall,),
                 spacerSmall,
                 
               ],

@@ -143,9 +143,9 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "6bdbb8a"
-      resolved-ref: "6bdbb8a1112f7d987fb383080451608ae9b70b30"
-      url: "https://github.com/KernelInterrupt/libmpv_dart.git"
+      ref: fc4da4d
+      resolved-ref: fc4da4d6d14ec7fed9bedba4c69fc3555b45dfeb
+      url: "https://github.com/Playboy-Player/libmpv_dart.git"
     source: git
     version: "0.0.1"
   lints:

@@ -15,8 +15,9 @@ dependencies:
   path_provider: any
   libmpv_dart:
     git:
-      url: https://github.com/KernelInterrupt/libmpv_dart.git
-      ref: 6bdbb8a
+      url: https://github.com/Playboy-Player/libmpv_dart.git
+      ref: fc4da4d
+
 
  
   

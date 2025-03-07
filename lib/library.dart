@@ -35,7 +35,7 @@ class WhisperLibrary {
       flagFirst = true;
     } catch (e) {
       flagFirst = true;
-      debugPrint('error loading libmpv: ${e.toString()}');
+      debugPrint('error loading libwhisper: ${e.toString()}');
     }
   }
 }

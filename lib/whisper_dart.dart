@@ -6,9 +6,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:libmpv_dart/gen/bindings.dart';
 import 'package:libmpv_dart/libmpv.dart' as mpv;
-
 import 'package:path_provider/path_provider.dart';
 import 'package:whisper_dart/library.dart';
 import 'package:whisper_dart/other.dart';
@@ -43,7 +44,7 @@ class Whisper{
 late Pointer<whisper_context> ctx;
 int get handle => ctx.address;
 
-Whisper(String modelPath,whisper_context_params cparams){
+Whisper(dynamic model,whisper_context_params cparams){
   if (!WhisperLibrary.loaded) {
       if (!WhisperLibrary.flagFirst) {
         WhisperLibrary.init();
@@ -51,8 +52,18 @@ Whisper(String modelPath,whisper_context_params cparams){
         throw Exception('libwhisper is not loaded!');
       }
     }
-  ctx=WhisperLibrary.binding.whisper_init_from_file_with_params(modelPath.toNativeUtf8().cast<Char>(), cparams);
+    if(model is String){
+     
+  ctx=WhisperLibrary.binding.whisper_init_from_file_with_params(model.toNativeUtf8().cast<Char>(), cparams);
 
+    }
+    else if(model is Uint8List){
+      var ptr=allocateUint8Pointer(model);
+      ctx=WhisperLibrary.binding.whisper_init_from_buffer_with_params(ptr.cast(),model.length, cparams);
+    }
+    else{
+      throw Exception("Invalid mode");
+    }
 }
 
 void full(whisper_full_params wparams,List<double> pcmf32List){
@@ -91,15 +102,32 @@ void free(){
 }
 
 
-void cvt2PCM(String inputPath,String outputPath){
-Map<String,String> option={
+
+
+void cvt2PCM(String inputPath,String outputPath,{String? logPath}){
+  
+  print(outputPath);
+  Map<String,String> option;
+  if(logPath==null){
+  
+option={
 "terminal":"yes",
 "gapless-audio":"yes",
 "o":outputPath,
 "of":"s16le",
 "oac":"pcm_s16le"
 };
-
+  }
+  else{
+option={
+"terminal":"yes",
+"gapless-audio":"yes",
+"log-file":logPath,
+"o":outputPath,
+"of":"s16le",
+"oac":"pcm_s16le"
+};
+  }
   mpv.Player player = mpv.Player(option);
  player.command(["loadfile",inputPath]);
  
@@ -122,7 +150,7 @@ player.destroy();
 
 
 Future<Float32List> pcm2List(String filePath) async {
-  Uint8List pcmData = await File(filePath).readAsBytes();
+  Uint8List pcmData =await File(filePath).readAsBytes();
   int sampleSize = 2;
   int numSamples = pcmData.length ~/ sampleSize;
   Float32List floatList = Float32List(numSamples);
@@ -173,6 +201,21 @@ Float32List floatList=Float32List.fromList(list);
   return memory;
 }
 
+Pointer<Uint8> allocateUint8Pointer(List<int> list) {
+  // 分配足够的内存
+  final memory = malloc<Uint8>(list.length);
+  if(list is Uint8List){
+    memory.asTypedList(list.length).setAll(0, list);
+ 
+    return memory;
+  }
+Uint8List uint8List=Uint8List.fromList(list);
+  // 将 list 元素复制到分配的内存中
+  memory.asTypedList(uint8List.length).setAll(0, uint8List);
+
+  return memory;
+}
+
 void minimumInferenceImpl(String inputPath) async{
     // Basic usage:
     //     whisper_context_params cparams = whisper_context_default_params();
@@ -191,13 +234,25 @@ void minimumInferenceImpl(String inputPath) async{
     //     }
     //
     //     whisper_free(ctx);
-Directory tempDir = await getTemporaryDirectory();
-  String tempPath = tempDir.path+"/tempfile.pcm";
+// Directory tempDir = await getTemporaryDirectory();
+// print(await tempDir.exists());
+//   String tempPath = tempDir.path+"/tempfile.pcm";
+final Directory tempDirectory = await getTemporaryDirectory();
+final ByteData documentBytes = await rootBundle.load(inputPath);
+
+final String inputAuPath = '${tempDirectory.path}/input.wav';
+final String outputAuPath = '${tempDirectory.path}/output.pcm';
+final String logPath = '${tempDirectory.path}/log.txt';
+await File(inputAuPath).writeAsBytes(
+    documentBytes.buffer.asUint8List(),
+);
+var buffer=await rootBundle.load("assets/ggml-base.en.bin");
+Uint8List model=buffer.buffer.asUint8List();
 var cparams=createContextDefaultParams();
 var wparams=createFullDefaultParams(whisper_sampling_strategy.WHISPER_SAMPLING_GREEDY);
-var whisper=Whisper("model/ggml-base.en.bin", cparams);
-cvt2PCM(inputPath, tempPath);
-Future<Float32List> _pcmf32List=pcm2List(tempPath);
+var whisper=Whisper(model, cparams);
+cvt2PCM(inputAuPath, outputAuPath,logPath: logPath);
+Future<Float32List> _pcmf32List=pcm2List(outputAuPath);
 Float32List pcmf32List=await _pcmf32List;
 whisper.fullParallel(wparams,pcmf32List,1);
         
