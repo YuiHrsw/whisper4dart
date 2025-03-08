@@ -25,7 +25,7 @@ var buffer=await rootBundle.load("assets/ggml-base.en.bin");
 Uint8List model=buffer.buffer.asUint8List();
 var cparams=whisper_dart.createContextDefaultParams();
 var whisper=whisper_dart.Whisper(model,cparams);
-return whisper.infer(inputPath,logPath: logPath,outputMode: "srt",numProcessors: 1);
+return whisper.infer(inputPath,logPath: logPath,outputMode: "plaintext",numProcessors: 1);
 
 }
 class MyApp extends StatefulWidget {
