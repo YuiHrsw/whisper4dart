@@ -13,10 +13,7 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   path_provider: any
-  libmpv_dart:
-    git:
-      url: https://github.com/Playboy-Player/libmpv_dart.git
-      ref: fc4da4d
+  libmpv_dart: ^0.0.1
 
 
  
