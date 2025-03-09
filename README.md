@@ -24,6 +24,14 @@ At this point,`whisper_dart ` is only available for Android,Windows and Linux.
 
 For example,you need to run:`dart rum libmpv_dart:setup --platform windows` if you want to setup for windows.
 
+And then,run:
+
+```
+dart run whisper_dart:setup
+```
+
+OK,now you are ready to use the package,enjoy it!
+
 ## How to use
 
 ```dart
@@ -85,7 +93,6 @@ Sample output strings of the four output modes:(input file:jfk.wav)
 00:00:00,000 --> 00:00:11,000
  And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country.
 ```
-
 
 ## Acknowledgement
 
