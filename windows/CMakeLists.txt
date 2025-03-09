@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Project-level configuration.
-set(PROJECT_NAME "whisper_dart")
+set(PROJECT_NAME "whisper4dart")
 project(${PROJECT_NAME} LANGUAGES CXX)
 include(ExternalProject)
 #terrible hack.
@@ -22,7 +22,7 @@ ExternalProject_Add(
 
 
 file(GLOB WHISPER_BUILD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../src/whisper_build/windows/bin/Release/*")
-set(whisper_dart_bundled_libraries
+set(whisper4dart_bundled_libraries
   # Defined in ../src/CMakeLists.txt.
   # This can be changed to accommodate different builds.
   "${WHISPER_BUILD_PATH}"

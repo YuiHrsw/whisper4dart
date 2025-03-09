@@ -1,6 +1,6 @@
-# whisper_dart_example
+# whisper4dart_example
 
-Demonstrates how to use the whisper_dart plugin.
+Demonstrates how to use the whisper4dart plugin.
 
 ## Getting Started
 

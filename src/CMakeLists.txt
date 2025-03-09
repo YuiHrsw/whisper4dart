@@ -3,7 +3,7 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-project(whisper_dart_library VERSION 0.0.1 LANGUAGES CXX)
+project(whisper4dart_library VERSION 0.0.1 LANGUAGES CXX)
 
 set(WHISPER_LIBRARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp")
 

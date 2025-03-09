@@ -14,7 +14,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'package:whisper4dart/library.dart';
 import 'package:whisper4dart/other.dart';
-import 'whisper_dart_bindings_generated.dart';
+import 'whisper4dart_bindings_generated.dart';
 
 
 /// A very short-lived native function.

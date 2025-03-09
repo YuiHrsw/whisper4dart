@@ -14,7 +14,7 @@ var url = Uri.parse('https://github.com/ggerganov/whisper.cpp/archive/refs/heads
     return;
   }
   // 查找特定插件的包信息
-  var pluginPackage = packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper_dart');
+  var pluginPackage = packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper4dart');
   // 使用这个信息得到插件根目录
   var pluginRootPath = pluginPackage.packageUriRoot.toFilePath(windows: Platform.isWindows);
   // 下载文件
@@ -80,6 +80,6 @@ for (var file in archive) {
 
 
 void main(List<String> arguments) async {
-  print('Setting up whisper_dart...');
+  print('Setting up whisper4dart...');
 setup();
 }

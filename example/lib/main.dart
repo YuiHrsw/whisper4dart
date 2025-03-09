@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:whisper_dart/whisper_dart.dart' as whisper_dart;
+import 'package:whisper4dart/whisper4dart.dart' as whisper;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 void main() {
@@ -23,9 +23,9 @@ await File(inputPath).writeAsBytes(
 );
 var buffer=await rootBundle.load("assets/ggml-base.en.bin");
 Uint8List model=buffer.buffer.asUint8List();
-var cparams=whisper_dart.createContextDefaultParams();
-var whisper=whisper_dart.Whisper(model,cparams);
-return whisper.infer(inputPath,logPath: logPath,outputMode: "plaintext",numProcessors: 1);
+var cparams=whisper.createContextDefaultParams();
+var whisperModel=whisper.Whisper(model,cparams);
+return whisperModel.infer(inputPath,logPath: logPath,outputMode: "plaintext",numProcessors: 1);
 
 }
 class MyApp extends StatefulWidget {

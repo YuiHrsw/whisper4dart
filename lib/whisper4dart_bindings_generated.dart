@@ -8,7 +8,7 @@
 // ignore_for_file: type=lint
 import 'dart:ffi' as ffi;
 
-/// Bindings for `src/whisper_dart.h`.
+/// Bindings for `src/whisper4dart.h`.
 ///
 /// Regenerate bindings with `flutter pub run ffigen --config ffigen.yaml`.
 ///

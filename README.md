@@ -1,17 +1,17 @@
-# whisper_dart
+# whisper4dart
 
-Whisper_dart is a dart wrapper for [whisper.cpp](https://github.com/ggerganov/whisper.cpp), designed to offer an all-in-one speech recognition experience. With the built-in decoder/demuxer from ffmpeg, it can handle **most audio file** inputs, not just wav.
+whisper4dart is a dart wrapper for [whisper.cpp](https://github.com/ggerganov/whisper.cpp), designed to offer an all-in-one speech recognition experience. With the built-in decoder/demuxer from ffmpeg, it can handle **most audio file** inputs, not just wav.
 
 ## Getting Started
 
 ```powershell
-flutter pub add whisper_dart
+flutter pub add whisper4dart
 ```
 
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper_dart:^0.0.1
+    whisper4dart:^0.0.1
 ```
 
 After that,run following command in your terminal:
@@ -20,14 +20,14 @@ After that,run following command in your terminal:
 dart rum libmpv_dart:setup --platform <your-platform>
 ```
 
-At this point,`whisper_dart ` is only available for Android,Windows and Linux.
+At this point,`whisper4dart ` is only available for Android,Windows and Linux.
 
-For example,you need to run:`dart rum libmpv_dart:setup --platform windows` if you want to setup for windows.
+For example,you need to run:`dart run libmpv_dart:setup --platform windows` if you want to setup for windows.
 
 And then,run:
 
 ```
-dart run whisper_dart:setup
+dart run whisper4dart:setup
 ```
 
 OK,now you are ready to use the package,enjoy it!
@@ -35,6 +35,8 @@ OK,now you are ready to use the package,enjoy it!
 ## How to use
 
 ```dart
+import 'package:whisper4dart/whisper4dart.dart' as whisper;
+
 final Directory tempDirectory = await getTemporaryDirectory();
 final ByteData documentBytes = await rootBundle.load(inputPath);
 await File(inputPath).writeAsBytes(
@@ -45,7 +47,7 @@ await File(inputPath).writeAsBytes(
 final String logPath = '${tempDirectory.path}/log.txt';
 
 
-var cparams=whisper_dart.createContextDefaultParams();
+var cparams=whisper4dart.createContextDefaultParams();
 //create default parameters,you can modify it on your demand.
 
 var buffer=await rootBundle.load("assets/ggml-base.en.bin");
@@ -54,11 +56,11 @@ Uint8List model=buffer.buffer.asUint8List();
 //and you just need to pass the file path of model to initialize whisper.
 //Like this:	var model="path/to/your/model";
 
-var whisper=whisper_dart.Whisper(model,cparams);
+var whisperModel=whisper.Whisper(model,cparams);
 //initialize whisper model
-return whisper.infer(inputPath,logPath: logPath,outputMode: "srt",numProcessors: 1);
+String output=await whisperModel.infer(inputPath,logPath: logPath,outputMode: "srt",numProcessors: 1);
 //whisper.infer is the core function,"inputPath" is the file path of the audio file(for example:/tmp/jfk.mp3),
-//After you specify "logPath", whisper_dart will output the encoder/demuxer logs to that directory.
+//After you specify "logPath", whisper4dart will output the encoder/demuxer logs to that directory.
 //The "outputMode" variable determines the output format. There are four options:
 //"plaintext": Outputs plain text
 //"txt": Outputs text-formatted strings
