@@ -7,7 +7,7 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'whisper_dart_bindings_generated.dart';
-import 'package:whisper_dart/library.dart';
+import 'package:whisper4dart/library.dart';
 
 whisper_context_params createContextDefaultParams() {
   if (!WhisperLibrary.loaded) {

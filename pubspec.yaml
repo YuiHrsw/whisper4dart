@@ -1,4 +1,4 @@
-name: whisper_dart
+name: whisper4dart
 description: "A Dart wrapper for whisper.cpp"
 version: 0.0.1
 homepage:
@@ -59,7 +59,8 @@ flutter:
         ffiPlugin: true
       windows:
         ffiPlugin: true
-
+executables:
+  setup: setup
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

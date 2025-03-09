@@ -12,8 +12,8 @@ import 'package:libmpv_dart/gen/bindings.dart';
 import 'package:libmpv_dart/libmpv.dart' as mpv;
 import 'package:path_provider/path_provider.dart';
 
-import 'package:whisper_dart/library.dart';
-import 'package:whisper_dart/other.dart';
+import 'package:whisper4dart/library.dart';
+import 'package:whisper4dart/other.dart';
 import 'whisper_dart_bindings_generated.dart';
 
 
