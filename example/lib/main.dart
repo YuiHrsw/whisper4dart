@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'dart:async';
-
+import 'package:path/path.dart' as path;
 import 'package:whisper4dart/whisper4dart.dart' as whisper;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
@@ -14,13 +14,14 @@ void main() {
 Future<String> inference(String inputPath) async{
    
 final Directory tempDirectory = await getTemporaryDirectory();
-final ByteData documentBytes = await rootBundle.load(inputPath);
+// final ByteData documentBytes = await rootBundle.load(inputPath);
 
 
-final String logPath = '${tempDirectory.path}/log.txt';
-await File(inputPath).writeAsBytes(
-    documentBytes.buffer.asUint8List(),
-);
+final String logPath = path.join(tempDirectory.path,"log.txt");
+// await File(inputPath).writeAsBytes(
+//     documentBytes.buffer.asUint8List(),
+// );
+
 var buffer=await rootBundle.load("assets/ggml-base.en.bin");
 Uint8List model=buffer.buffer.asUint8List();
 var cparams=whisper.createContextDefaultParams();

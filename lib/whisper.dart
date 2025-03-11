@@ -123,7 +123,9 @@ Future<String> infer(String inputPath,{String? logPath,String outputMode="plaint
   
  final Directory tempDirectory = await getTemporaryDirectory();
   var outputPath=path.join(tempDirectory.path,"output.pcm");
-  if(logPath==null){
+  
+  if(logPath!=null){
+    
     cvt2PCM(inputPath, outputPath,logPath: logPath);
   }
   else{
@@ -202,10 +204,13 @@ option={
 "o":outputPath,
 "of":"s16le",
 "oac":"pcm_s16le",
-"oacopts":"ac=1"
+"audio-channels":"1",
+"audio-samplerate":"16000"
+
 };
   }
   else{
+    
 option={
 "terminal":"yes",
 "gapless-audio":"yes",
@@ -213,10 +218,14 @@ option={
 "o":outputPath,
 "of":"s16le",
 "oac":"pcm_s16le",
-"oacopts":"ac=1"
+"audio-channels":"1",
+"audio-samplerate":"16000"
+
 };
   }
   mpv.Player player = mpv.Player(option);
+
+
  player.command(["loadfile",inputPath]);
  
 
