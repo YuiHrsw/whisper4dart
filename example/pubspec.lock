@@ -143,10 +143,10 @@ packages:
     dependency: transitive
     description:
       name: libmpv_dart
-      sha256: c575784e30d3fea943406acd180482b810246cd545964e46819464c4f48349d9
+      sha256: "70250eb5d178dc5b8b73ac8e0f49f1bc15a8422f9036d71d4a8ece5601d31764"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1"
+    version: "0.0.2"
   lints:
     dependency: transitive
     description:
@@ -350,7 +350,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.2"
   xdg_directories:
     dependency: transitive
     description:

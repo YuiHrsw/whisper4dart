@@ -7,7 +7,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
-
+import 'package:path/path.dart' as path;
 import 'package:libmpv_dart/gen/bindings.dart';
 import 'package:libmpv_dart/libmpv.dart' as mpv;
 import 'package:path_provider/path_provider.dart';
@@ -119,10 +119,10 @@ int fullGetSegmentT0(int i){
 int fullGetSegmentT1(int i){
   return WhisperLibrary.binding.whisper_full_get_segment_t1(ctx, i);
 }
-Future<String> infer(String inputPath,{String? logPath,String outputMode="plaintext",int numProcessors=1})async{
+Future<String> infer(String inputPath,{String? logPath,String outputMode="plaintext",int numProcessors=1,bool isolate=false})async{
   
  final Directory tempDirectory = await getTemporaryDirectory();
-  var outputPath='${tempDirectory.path}/output.pcm';
+  var outputPath=path.join(tempDirectory.path,"output.pcm");
   if(logPath==null){
     cvt2PCM(inputPath, outputPath,logPath: logPath);
   }
@@ -201,7 +201,8 @@ option={
 "gapless-audio":"yes",
 "o":outputPath,
 "of":"s16le",
-"oac":"pcm_s16le"
+"oac":"pcm_s16le",
+"oacopts":"ac=1"
 };
   }
   else{
@@ -211,7 +212,8 @@ option={
 "log-file":logPath,
 "o":outputPath,
 "of":"s16le",
-"oac":"pcm_s16le"
+"oac":"pcm_s16le",
+"oacopts":"ac=1"
 };
   }
   mpv.Player player = mpv.Player(option);
