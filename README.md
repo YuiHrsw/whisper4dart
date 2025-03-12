@@ -2,6 +2,16 @@
 
 whisper4dart is a dart wrapper for [whisper.cpp](https://github.com/ggerganov/whisper.cpp), designed to offer an all-in-one speech recognition experience. With the built-in decoder/demuxer from ffmpeg, it can handle **most audio file** inputs, not just wav.
 
+| Platform | Status |
+| :------: | :----: |
+| Windows |   ✅   |
+|  Linux  |   ✅   |
+| Android |   ✅   |
+|   iOS   |   ❌   |
+|  MacOS  |   ❌   |
+
+iOS and MacOS version of whisper4dart will be available in the near future. However, we have no intention to support web platform, at least now.
+
 ## Getting Started
 
 ```powershell
@@ -11,7 +21,7 @@ flutter pub add whisper4dart
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.0.1
+    whisper4dart:^0.0.4
 ```
 
 After that,run following command in your terminal:
