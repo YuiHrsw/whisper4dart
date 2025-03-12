@@ -96,6 +96,12 @@ Sample output strings of the four output modes:(input file:jfk.wav)
  And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country.
 ```
 
+## Run in isolate
+
+Just use `.inferIsolate()` to replace `.infer()` .
+
+
+
 ## Acknowledgement
 
 This project leverages contributions from[ libmpv_dart ](https://github.com/Playboy-Player/libmpv_dart)and [whisper.cpp](https://github.com/ggerganov/whisper.cpp)

@@ -261,7 +261,7 @@ Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode=
     final Directory tempDirectory = await getTemporaryDirectory();
     
     var cparams = createContextDefaultParams();
-    print("Creating whisper model...");
+    
     var whisperModel = Whisper.useCtx(Pointer.fromAddress(ctx));
     return whisperModel.infer(inputPath,
         logPath: logPath, outputMode: outputMode, numProcessors: 1);
