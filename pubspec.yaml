@@ -13,7 +13,8 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   path_provider: ^2.1.4
-  libmpv_dart: ^0.0.1
+  libmpv_dart: ^0.0.2
+
   path: ^1.9.0
   collection: ^1.15.0
   http: ^1.2.1

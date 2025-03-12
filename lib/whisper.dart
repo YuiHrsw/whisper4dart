@@ -11,12 +11,12 @@ import 'package:flutter/foundation.dart';
 import 'package:libmpv_dart/gen/bindings.dart';
 import 'package:libmpv_dart/libmpv.dart' as mpv;
 import 'package:path_provider/path_provider.dart';
-
+import 'package:path/path.dart' as path;
 import 'package:whisper4dart/library.dart';
 import 'package:whisper4dart/other.dart';
 import 'whisper4dart_bindings_generated.dart';
 
-
+import 'package:flutter/services.dart';
 /// A very short-lived native function.
 ///
 /// For very short-lived functions, it is fine to call them on the main isolate.
@@ -43,6 +43,7 @@ class Whisper{
 
 
 late Pointer<whisper_context> ctx;
+SendPort? _isolateSendPort;
 int get handle => ctx.address;
 
 Whisper(dynamic model,whisper_context_params cparams){
@@ -65,6 +66,9 @@ Whisper(dynamic model,whisper_context_params cparams){
     else{
       throw Exception("Invalid mode");
     }
+}
+Whisper.useCtx(Pointer<whisper_context> context){
+ctx=context;
 }
 
 void full(whisper_full_params wparams,List<double> pcmf32List){
@@ -186,6 +190,88 @@ else{
   throw Exception("Invalid output mode");
 }
 }
+
+
+Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode="plaintext",int numProcessors=1}) async {
+   
+    logPath??=path.join((await getTemporaryDirectory()).path,"log.txt");
+   
+
+    // 确保 isolate 已经启动
+    if (_isolateSendPort == null) {
+      final ReceivePort isolateReceivePort = ReceivePort();
+      bool isolateStarted = false;
+      isolateReceivePort.listen((message) {
+        if (message is SendPort) {
+          _isolateSendPort = message;
+          isolateStarted = true;
+        }
+      });
+
+      await Isolate.spawn(_startInferIsolate, isolateReceivePort.sendPort);
+      while (!isolateStarted) {
+        await Future.delayed(Duration(milliseconds: 10));
+      }
+    }
+    var rootToken = RootIsolateToken.instance!;
+    final ReceivePort resultReceivePort = ReceivePort();
+    _isolateSendPort?.send(
+        [inputPath, ctx.address,logPath,outputMode,numProcessors, resultReceivePort.sendPort, rootToken]);
+
+    return resultReceivePort.first.then((message) {
+      if (message is String) {
+        return message;
+      } else {
+        throw TypeError();
+      }
+    });
+  }
+
+  static void _startInferIsolate(SendPort mainSendPort) async {
+    final ReceivePort isolateReceivePort = ReceivePort();
+    mainSendPort.send(isolateReceivePort.sendPort);
+
+    isolateReceivePort.listen((message) async {
+      if (message is List && message.length == 7) {
+        final String inputPath = message[0] as String;
+        final int ctx = message[1] as int;
+        final String logPath=message[2] as String;
+        final String outputMode=message[3] as String;
+        final int numProcessors=message[4] as int;
+        final SendPort resultSendPort = message[5] as SendPort;
+        final RootIsolateToken rootToken = message[6] as RootIsolateToken;
+        BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
+
+        try {
+          final String subtitle =
+              await _inferInIsolate(inputPath, ctx,logPath,outputMode,numProcessors);
+          resultSendPort.send(subtitle);
+        } catch (e) {
+          print(e);
+          resultSendPort.send(e);
+        }
+      }
+    });
+  }
+
+  static Future<String> _inferInIsolate(
+      String inputPath, int ctx,String logPath,String outputMode,int numProcessors)async {
+    
+
+    final Directory tempDirectory = await getTemporaryDirectory();
+    
+    var cparams = createContextDefaultParams();
+    print("Creating whisper model...");
+    var whisperModel = Whisper.useCtx(Pointer.fromAddress(ctx));
+    return whisperModel.infer(inputPath,
+        logPath: logPath, outputMode: outputMode, numProcessors: 1);
+  }
+
+  void close() {
+    _isolateSendPort?.send(null); // 通知 isolate 退出
+  }
+
+
 }
 
 

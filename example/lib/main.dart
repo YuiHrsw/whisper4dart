@@ -25,7 +25,7 @@ var buffer=await rootBundle.load("assets/ggml-base.en.bin");
 Uint8List model=buffer.buffer.asUint8List();
 var cparams=whisper.createContextDefaultParams();
 var whisperModel=whisper.Whisper(model,cparams);
-return whisperModel.infer(inputPath,logPath: logPath,outputMode: "plaintext",numProcessors: 1);
+return whisperModel.inferIsolate(inputPath,logPath: logPath,outputMode: "plaintext",numProcessors: 1);
 
 }
 class MyApp extends StatefulWidget {
