@@ -21,7 +21,7 @@ flutter pub add whisper4dart
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.0.4
+    whisper4dart:^0.0.6
 ```
 
 After that,run following command in your terminal:
@@ -37,7 +37,13 @@ For example,you need to run:`dart run libmpv_dart:setup --platform windows` if y
 And then,run:
 
 ```
-dart run whisper4dart:setup
+dart run whisper4dart:setup  --prebuilt
+```
+
+Attention:If you want to build whisper.cpp by yourself instead of using prebuilt libs,run following command:
+
+```
+dart run whisper4dart:setup --source
 ```
 
 OK,now you are ready to use the package,enjoy it!
@@ -109,8 +115,6 @@ Sample output strings of the four output modes:(input file:jfk.wav)
 ## Run in isolate
 
 Just use `.inferIsolate()` to replace `.infer()` .
-
-
 
 ## Acknowledgement
 
