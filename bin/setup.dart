@@ -17,6 +17,19 @@ var url = Uri.parse('https://github.com/ggerganov/whisper.cpp/archive/refs/heads
   var pluginPackage = packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper4dart');
   // 使用这个信息得到插件根目录
   var pluginRootPath = pluginPackage.packageUriRoot.toFilePath(windows: Platform.isWindows);
+  String filePath=path.join(pluginRootPath,"..","config.txt");
+
+  File file = File(filePath);
+
+  try {
+    // 使用 writeAsString 方法将内容写入文件
+    // 如果文件不存在，writeAsString 会自动创建文件
+    await file.writeAsString('USE_PREBUILT_LIBS=FALSE');
+    print('Successfully set USE_PREBUILT_LIBS=TRUE in config.txt');
+  } catch (e) {
+    // 捕获并处理可能发生的异常
+    print(' $e');
+  }
   // 下载文件
   var response = await http.get(url);
   if (response.statusCode == 200) {
@@ -87,6 +100,19 @@ var url = Uri.parse('https://github.com/KernelInterrupt/whisper4dart_build/archi
   var pluginPackage = packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper4dart');
   // 使用这个信息得到插件根目录
   var pluginRootPath = pluginPackage.packageUriRoot.toFilePath(windows: Platform.isWindows);
+ String filePath=path.join(pluginRootPath,"..","config.txt");
+
+  File file = File(filePath);
+
+  try {
+    // 使用 writeAsString 方法将内容写入文件
+    // 如果文件不存在，writeAsString 会自动创建文件
+    await file.writeAsString('USE_PREBUILT_LIBS=TRUE');
+    print('Successfully set USE_PREBUILT_LIBS=TRUE in config.txt');
+  } catch (e) {
+    // 捕获并处理可能发生的异常
+    print(' $e');
+  }
   // 下载文件
   var response = await http.get(url);
   if (response.statusCode == 200) {
