@@ -21,11 +21,17 @@ var url = Uri.parse('https://github.com/ggerganov/whisper.cpp/archive/refs/heads
 
   File file = File(filePath);
 
+
   try {
+    if (await file.exists()) {
+      // 如果文件存在，先删除文件
+      await file.delete();
+      
+    }
     // 使用 writeAsString 方法将内容写入文件
     // 如果文件不存在，writeAsString 会自动创建文件
     await file.writeAsString('USE_PREBUILT_LIBS=FALSE');
-    print('Successfully set USE_PREBUILT_LIBS=TRUE in config.txt');
+    print('Successfully set USE_PREBUILT_LIBS=FALSE in config.txt');
   } catch (e) {
     // 捕获并处理可能发生的异常
     print(' $e');
@@ -105,6 +111,11 @@ var url = Uri.parse('https://github.com/KernelInterrupt/whisper4dart_build/archi
   File file = File(filePath);
 
   try {
+    if (await file.exists()) {
+      // 如果文件存在，先删除文件
+      await file.delete();
+      
+    }
     // 使用 writeAsString 方法将内容写入文件
     // 如果文件不存在，writeAsString 会自动创建文件
     await file.writeAsString('USE_PREBUILT_LIBS=TRUE');

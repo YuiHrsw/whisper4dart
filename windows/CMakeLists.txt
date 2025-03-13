@@ -26,8 +26,15 @@ message(STATUS "USE_PREBUILT_LIBS: ${USE_PREBUILT_LIBS}")
 if(USE_PREBUILT_LIBS)
   message(STATUS "USE_PREBUILT_LIBS is true")
 
-  include(ExternalProject)
+  
 
+
+
+
+  file(GLOB WHISPER_BUILD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../prebuilt/windows/*")
+
+else()
+  include(ExternalProject)
   #terrible hack.
   #I do this only because add_subdirectory is not supported in flutter plugin.
   #see https://github.com/flutter/flutter/issues/95530 for more details.
@@ -39,13 +46,7 @@ if(USE_PREBUILT_LIBS)
       BUILD_COMMAND cmake --build ${CMAKE_CURRENT_SOURCE_DIR}/../src/whisper_build/windows --config Release
       INSTALL_COMMAND ""
   )
-
-
-  file(GLOB WHISPER_BUILD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../prebuilt/windows/*")
-
-else()
-
-
+  file(GLOB WHISPER_BUILD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../src/whisper_build/windows/bin/Release/*")
 
 
 endif()
