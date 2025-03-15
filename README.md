@@ -21,7 +21,7 @@ flutter pub add whisper4dart
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.0.9
+    whisper4dart:^0.0.10
 ```
 
 After that,run following command in your terminal:

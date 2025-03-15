@@ -22,7 +22,7 @@ final String logPath = path.join(tempDirectory.path,"log.txt");
 //     documentBytes.buffer.asUint8List(),
 // );
 
-var buffer=await rootBundle.load("assets/ggml-base.en.bin");
+var buffer=await rootBundle.load("assets/ggml-medium-q5_0.bin");
 Uint8List model=buffer.buffer.asUint8List();
 var cparams=whisper.createContextDefaultParams();
 var whisperModel=whisper.Whisper(model,cparams);

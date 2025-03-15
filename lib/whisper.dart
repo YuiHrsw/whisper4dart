@@ -123,7 +123,7 @@ int fullGetSegmentT0(int i){
 int fullGetSegmentT1(int i){
   return WhisperLibrary.binding.whisper_full_get_segment_t1(ctx, i);
 }
-Future<String> infer(String inputPath,{String? logPath,String outputMode="plaintext",int numProcessors=1,bool isolate=false})async{
+Future<String> infer(String inputPath,{String? logPath,String outputMode="plaintext",int numProcessors=1,String language="auto",bool translate=false,String initialPrompt="",int strategy=whisper_sampling_strategy.WHISPER_SAMPLING_GREEDY})async{
   
  final Directory tempDirectory = await getTemporaryDirectory();
   var outputPath=path.join(tempDirectory.path,"output.pcm");
@@ -136,7 +136,12 @@ Future<String> infer(String inputPath,{String? logPath,String outputMode="plaint
     cvt2PCM(inputPath, outputPath);
   }
 
-var wparams=createFullDefaultParams(whisper_sampling_strategy.WHISPER_SAMPLING_GREEDY); 
+var wparams=createFullDefaultParams(strategy); 
+wparams.language=language.toNativeUtf8().cast<Char>();
+wparams.translate=translate;
+if(initialPrompt!=""){
+wparams.initial_prompt=initialPrompt.toNativeUtf8().cast<Char>();
+}
 Future<Float32List> _pcmf32List=pcm2List(outputPath);
 Float32List pcmf32List=await _pcmf32List;
 fullParallel(wparams,pcmf32List,numProcessors);
@@ -152,6 +157,7 @@ for (int i = 0; i < nSegments; ++i) {
 }
 
 String result = stringBuffer.toString(); // 获取拼接后的完整字符串
+free();
 return result;
 }
 else if(outputMode=="json"){
@@ -164,6 +170,7 @@ else if(outputMode=="json"){
     result.add({"from":toTimestamp(fullGetSegmentT0(i)),"to":toTimestamp(fullGetSegmentT1(i)),"text":text});
     
   }
+  free();
   return jsonEncode(result);
 }
 else if(outputMode=="txt"){
@@ -174,6 +181,7 @@ for (int i = 0; i < nSegments; ++i) {
     stringBuffer.write('\n'); // 如果需要换行，可以添加换行符
 }
 String result = stringBuffer.toString(); // 获取拼接后的完整字符串
+free();
 return result;
 }
 else if(outputMode=="srt"){
@@ -186,6 +194,7 @@ for (int i = 0; i < nSegments; ++i) {
     stringBuffer.write('\n'); // 如果需要换行，可以添加换行符
 }
 String result = stringBuffer.toString(); // 获取拼接后的完整字符串
+free();
 return result;
 }
 else{
@@ -194,7 +203,7 @@ else{
 }
 
 
-Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode="plaintext",int numProcessors=1}) async {
+Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode="plaintext",int numProcessors=1,String language="auto",bool translate=false,String initialPrompt="",int strategy=whisper_sampling_strategy.WHISPER_SAMPLING_GREEDY}) async {
    
     logPath??=path.join((await getTemporaryDirectory()).path,"log.txt");
    
@@ -218,7 +227,7 @@ Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode=
     var rootToken = RootIsolateToken.instance!;
     final ReceivePort resultReceivePort = ReceivePort();
     _isolateSendPort?.send(
-        [inputPath, ctx.address,logPath,outputMode,numProcessors, resultReceivePort.sendPort, rootToken]);
+        [inputPath, ctx.address,logPath,outputMode,numProcessors,language,translate,initialPrompt,strategy, resultReceivePort.sendPort, rootToken]);
 
     return resultReceivePort.first.then((message) {
       if (message is String) {
@@ -234,19 +243,23 @@ Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode=
     mainSendPort.send(isolateReceivePort.sendPort);
 
     isolateReceivePort.listen((message) async {
-      if (message is List && message.length == 7) {
+      if (message is List && message.length == 11) {
         final String inputPath = message[0] as String;
         final int ctx = message[1] as int;
         final String logPath=message[2] as String;
         final String outputMode=message[3] as String;
         final int numProcessors=message[4] as int;
-        final SendPort resultSendPort = message[5] as SendPort;
-        final RootIsolateToken rootToken = message[6] as RootIsolateToken;
+        final String language=message[5] as String;
+        final bool translate=message[6] as bool;
+        final String initialPrompt=message[7] as String;
+        final int strategy=message[8] as int;
+        final SendPort resultSendPort = message[9] as SendPort;
+        final RootIsolateToken rootToken = message[10] as RootIsolateToken;
         BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
 
         try {
           final String subtitle =
-              await _inferInIsolate(inputPath, ctx,logPath,outputMode,numProcessors);
+              await _inferInIsolate(inputPath, ctx,logPath,outputMode,numProcessors,language,translate,initialPrompt,strategy);
           resultSendPort.send(subtitle);
         } catch (e) {
           print(e);
@@ -257,7 +270,7 @@ Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode=
   }
 
   static Future<String> _inferInIsolate(
-      String inputPath, int ctx,String logPath,String outputMode,int numProcessors)async {
+      String inputPath, int ctx,String logPath,String outputMode,int numProcessors,String language,bool translate,String initialPrompt,int strategy)async {
     
 
     final Directory tempDirectory = await getTemporaryDirectory();
@@ -266,7 +279,7 @@ Future<String> inferIsolate(String inputPath,{String? logPath,String outputMode=
     
     var whisperModel = Whisper.useCtx(Pointer.fromAddress(ctx));
     return whisperModel.infer(inputPath,
-        logPath: logPath, outputMode: outputMode, numProcessors: 1);
+        logPath: logPath, outputMode: outputMode, numProcessors: 1,language: language, translate: translate, initialPrompt: initialPrompt, strategy: strategy);
   }
 
   void close() {
