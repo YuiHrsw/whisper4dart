@@ -2,6 +2,7 @@ name: whisper4dart
 description: "A Dart wrapper for whisper.cpp"
 version: 0.0.10
 homepage:
+publish_to: 'none'
 
 environment:
   sdk: '>=3.3.1 <4.0.0'
@@ -13,16 +14,15 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   path_provider: ^2.1.4
-  libmpv_dart: ^0.0.2
+  libmpv_dart:
+    git:
+      url: https://github.com/Playboy-Player/libmpv_dart.git
+      ref: dev
   path: ^1.9.0
   collection: ^1.15.0
   http: ^1.2.1
   archive: ^3.4.10
   package_config: ^2.1.0
-
-
- 
-  
 
 dev_dependencies:
   
