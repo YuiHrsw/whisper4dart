@@ -142,10 +142,11 @@ packages:
   libmpv_dart:
     dependency: transitive
     description:
-      name: libmpv_dart
-      sha256: "70250eb5d178dc5b8b73ac8e0f49f1bc15a8422f9036d71d4a8ece5601d31764"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: dev
+      resolved-ref: f9ea7ff9acb605de5f012df315d5ed2bbb09dbb8
+      url: "https://github.com/Playboy-Player/libmpv_dart.git"
+    source: git
     version: "0.0.2"
   lints:
     dependency: transitive
