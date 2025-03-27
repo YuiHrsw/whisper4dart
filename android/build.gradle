@@ -55,7 +55,7 @@ android {
     // }
     sourceSets {
         main {
-            jniLibs.srcDirs = ['src/main/jniLibs']
+            jniLibs.srcDirs = ['../prebuilt/android']
         }
     }
     compileOptions {

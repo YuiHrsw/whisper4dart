@@ -21,7 +21,7 @@ flutter pub add whisper4dart
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.0.11
+    whisper4dart:^0.0.12
 ```
 
 After that,run following command in your terminal:
@@ -29,7 +29,6 @@ After that,run following command in your terminal:
 ```
 dart rum libmpv_dart:setup --platform <your-platform>
 ```
-
 
 For example,you need to run:`dart run libmpv_dart:setup --platform windows` if you want to setup for windows.
 
@@ -126,13 +125,8 @@ Just use `.inferStream()` to replace `.infer()` .
 
 It returns a `ValueNotifier<String>` and you can use the returned notifier to build widgets.
 
-
-```markdown
-[!CAUTION]
-In this mode,json output is not supported and you have to set numProcessors to 1.
-```
-
-
+> [!CAUTION]
+> In this mode,json output is not supported and you have to set numProcessors to 1.
 
 ## Acknowledgement
 
