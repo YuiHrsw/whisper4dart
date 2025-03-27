@@ -6,29 +6,45 @@ import 'package:path/path.dart' as path;
 import 'package:whisper4dart/whisper4dart.dart' as whisper;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
+
 void main() {
-  
   runApp(const MyApp());
 }
 
-Future<String> inference(String inputPath) async{
-   
-final Directory tempDirectory = await getTemporaryDirectory();
+Future<String> inference(String inputPath) async {
+  final Directory tempDirectory = await getTemporaryDirectory();
 // final ByteData documentBytes = await rootBundle.load(inputPath);
 
-
-final String logPath = path.join(tempDirectory.path,"log.txt");
+  final String logPath = path.join(tempDirectory.path, "log.txt");
 // await File(inputPath).writeAsBytes(
 //     documentBytes.buffer.asUint8List(),
 // );
 
-var buffer=await rootBundle.load("assets/ggml-medium-q5_0.bin");
-Uint8List model=buffer.buffer.asUint8List();
-var cparams=whisper.createContextDefaultParams();
-var whisperModel=whisper.Whisper(model,cparams);
-return whisperModel.inferIsolate(inputPath,logPath: logPath,outputMode: "plaintext",numProcessors: 1);
-
+  var buffer = await rootBundle.load("assets/ggml-base.en.bin");
+  Uint8List model = buffer.buffer.asUint8List();
+  var cparams = whisper.createContextDefaultParams();
+  var whisperModel = whisper.Whisper(model, cparams, outputMode: "plaintext");
+  return whisperModel.inferIsolate(inputPath,
+      logPath: logPath, numProcessors: 1);
 }
+
+Future<ValueNotifier<String>> inferenceStream(String inputPath) async {
+  final Directory tempDirectory = await getTemporaryDirectory();
+// final ByteData documentBytes = await rootBundle.load(inputPath);
+
+  final String logPath = path.join(tempDirectory.path, "log.txt");
+// await File(inputPath).writeAsBytes(
+//     documentBytes.buffer.asUint8List(),
+// );
+
+  var buffer = await rootBundle.load("assets/ggml-base.en.bin");
+  Uint8List model = buffer.buffer.asUint8List();
+  var cparams = whisper.createContextDefaultParams();
+  var whisperModel = whisper.Whisper(model, cparams, outputMode: "plaintext");
+  return whisperModel.inferStream(inputPath,
+      logPath: logPath, numProcessors: 1);
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -37,12 +53,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  
-
+  ValueNotifier<String> _textNotifier = ValueNotifier<String>('');
   @override
   void initState() {
     super.initState();
-   
   }
 
   @override
@@ -60,17 +74,42 @@ class _MyAppState extends State<MyApp> {
             child: Column(
               children: [
                 const Text(
-                  'This calls a native function through FFI that is shipped as source in the package. '
-                  'The native code is built as part of the Flutter Runner build.',
+                  'Here we have two buttons. '
+                  'The first button processes all the audio for transcription at once and prints it to the console. The second button processes the audio in chunks and presents the results progressively in the TextField.',
                   style: textStyle,
                   textAlign: TextAlign.center,
                 ),
                 spacerSmall,
-                ElevatedButton(onPressed:()async{
-                  
-                  print(await inference("assets/jfk.wav"));},child: spacerSmall,),
+                ElevatedButton(
+                    onPressed: () async {
+                      print(await inference("assets/test.mp4"));
+                    },
+                    child: const Text("Do inference at once")),
+                ElevatedButton(
+                  onPressed: () async {
+                    var newNotifier = await inferenceStream("assets/test.mp4");
+                    setState(() {
+                      _textNotifier = newNotifier;
+                    });
+
+                    // print(await inference("assets/test4.mp4"));
+                  },
+                  child: const Text("Do inference progressively"),
+                ),
                 spacerSmall,
-                
+                ValueListenableBuilder<String>(
+                  valueListenable: _textNotifier,
+                  builder: (context, value, child) {
+                    return SingleChildScrollView(
+                        child: TextField(
+                      // 设置文本框为只读，不允许用户输入
+                      readOnly: true,
+                      maxLines: null,
+                      // 设置文本框的控制器，使其显示notifier的值
+                      controller: TextEditingController(text: value),
+                    ));
+                  },
+                )
               ],
             ),
           ),

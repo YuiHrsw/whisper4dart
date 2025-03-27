@@ -19,6 +19,7 @@ dependencies:
   http: ^1.2.1
   archive: ^3.4.10
   package_config: ^2.1.0
+  provider: ^6.0.4
 
 
  

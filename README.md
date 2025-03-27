@@ -51,6 +51,7 @@ OK,now you are ready to use the package,enjoy it!
 ## How to use
 
 ```dart
+
 import 'package:whisper4dart/whisper4dart.dart' as whisper;
 
 final Directory tempDirectory = await getTemporaryDirectory();
@@ -72,16 +73,20 @@ Uint8List model=buffer.buffer.asUint8List();
 //and you just need to pass the file path of model to initialize whisper.
 //Like this:	var model="path/to/your/model";
 
-var whisperModel=whisper.Whisper(model,cparams);
+var whisperModel=whisper.Whisper(model,cparams,outputMode:"plaintext",translate:False,initialPrompt:"",startTime:0,endTime:-1);
 //initialize whisper model
-String output=await whisperModel.infer(inputPath,logPath: logPath,outputMode: "srt",numProcessors: 1);
-//whisper.infer is the core function,"inputPath" is the file path of the audio file(for example:/tmp/jfk.mp3),
-//After you specify "logPath", whisper4dart will output the encoder/demuxer logs to that directory.
 //The "outputMode" variable determines the output format. There are four options:
 //"plaintext": Outputs plain text
 //"txt": Outputs text-formatted strings
 //"json": Outputs JSON-formatted strings
 //"srt": Outputs SRT-subtitle-formatted strings
+String output=await whisperModel.infer(inputPath,logPath: logPath,numProcessors: 1);
+//The core function whisper.infer takes "inputPath" as the audio file path (e.g., /tmp/jfk.mp3).
+//Specifying "logPath" directs whisper4dart to save encoder/demuxer logs in that directory.
+//"translate" determines if the output should be translated into English.
+//Use "initialPrompt" to set the model's initial prompt.
+//"startTime" and "endTime" define the segment of the audio/video to process (unit: milliseconds).
+//Setting "endTime" to -1 means no end cropping is needed.
 ```
 
 Sample output strings of the four output modes:(input file:jfk.wav)
@@ -115,6 +120,14 @@ Sample output strings of the four output modes:(input file:jfk.wav)
 ## Run in isolate
 
 Just use `.inferIsolate()` to replace `.infer()` .
+
+## Output the transcription result in real time
+
+Just use `.inferStream()` to replace `.infer()` .
+
+It returns a `ValueNotifier<String>` and you can use the returned notifier to build widgets.
+
+Attention,in this mode,json output is not supported and you have to set numProcessors to 1.
 
 ## Acknowledgement
 
