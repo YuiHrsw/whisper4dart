@@ -21,7 +21,7 @@ flutter pub add whisper4dart
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.0.10
+    whisper4dart:^0.0.11
 ```
 
 After that,run following command in your terminal:
@@ -30,7 +30,6 @@ After that,run following command in your terminal:
 dart rum libmpv_dart:setup --platform <your-platform>
 ```
 
-At this point,`whisper4dart ` is only available for Android,Windows and Linux.
 
 For example,you need to run:`dart run libmpv_dart:setup --platform windows` if you want to setup for windows.
 
@@ -71,7 +70,7 @@ var buffer=await rootBundle.load("assets/ggml-base.en.bin");
 Uint8List model=buffer.buffer.asUint8List();
 //if your model file is not in assets/ ,you dont need to do so,
 //and you just need to pass the file path of model to initialize whisper.
-//Like this:	var model="path/to/your/model";
+//Like this: var model="path/to/your/model";
 
 var whisperModel=whisper.Whisper(model,cparams,outputMode:"plaintext",translate:False,initialPrompt:"",startTime:0,endTime:-1);
 //initialize whisper model
@@ -127,7 +126,13 @@ Just use `.inferStream()` to replace `.infer()` .
 
 It returns a `ValueNotifier<String>` and you can use the returned notifier to build widgets.
 
-Attention,in this mode,json output is not supported and you have to set numProcessors to 1.
+
+```markdown
+[!CAUTION]
+In this mode,json output is not supported and you have to set numProcessors to 1.
+```
+
+
 
 ## Acknowledgement
 
