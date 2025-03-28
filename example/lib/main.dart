@@ -25,7 +25,7 @@ Future<String> inference(String inputPath) async {
   var cparams = whisper.createContextDefaultParams();
   var whisperModel = whisper.Whisper(model, cparams, outputMode: "plaintext");
   return whisperModel.inferIsolate(inputPath,
-      logPath: logPath, numProcessors: 1);
+      logPath: logPath, numProcessors: 1, startTime: 3000);
 }
 
 Future<ValueNotifier<String>> inferenceStream(String inputPath) async {
@@ -42,7 +42,7 @@ Future<ValueNotifier<String>> inferenceStream(String inputPath) async {
   var cparams = whisper.createContextDefaultParams();
   var whisperModel = whisper.Whisper(model, cparams, outputMode: "plaintext");
   return whisperModel.inferStream(inputPath,
-      logPath: logPath, numProcessors: 1);
+      logPath: logPath, numProcessors: 1, startTime: 3000);
 }
 
 class MyApp extends StatefulWidget {

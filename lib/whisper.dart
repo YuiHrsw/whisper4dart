@@ -166,7 +166,7 @@ class Whisper {
     fullParallel(wparams, pcmf32List, numProcessors);
     timeOffset = useOriginalTime ? startTime : 0;
     int nSegments = fullNSegments();
-    String result = output(0, nSegments);
+    String result = output(0, nSegments, timeOffset: timeOffset);
     return result;
   }
 
@@ -220,7 +220,11 @@ class Whisper {
     if (outputMode == "json") {
       throw Exception("JSON output is not supported for streaming yet");
     }
-
+    Pointer<WhisperTimeData4Callback> timeData4Callback =
+        calloc<WhisperTimeData4Callback>();
+    timeData4Callback.ref.startTime = startTime;
+    timeData4Callback.ref.endTime = endTime;
+    timeData4Callback.ref.useOriginalTime = useOriginalTime ? 1 : 0;
     inferIsolate(inputPath,
         logPath: logPath,
         numProcessors: numProcessors,
@@ -231,7 +235,8 @@ class Whisper {
         startTime: startTime,
         endTime: endTime,
         useOriginalTime: useOriginalTime,
-        newSegmentCallback: getSegmentCallback);
+        newSegmentCallback: getSegmentCallback,
+        newSegmentCallbackUserData: timeData4Callback.cast<Void>());
 
     return result;
   }
@@ -373,7 +378,7 @@ class Whisper {
     _isolateSendPort?.send(null); // 通知 isolate 退出
   }
 
-  String output(int startSegment, int endSegment) {
+  String output(int startSegment, int endSegment, {int timeOffset = 0}) {
     if (outputMode == "plaintext") {
       StringBuffer stringBuffer = StringBuffer();
       for (int i = startSegment; i < endSegment; ++i) {
@@ -393,8 +398,8 @@ class Whisper {
       for (int i = startSegment; i < endSegment; i++) {
         String text = fullGetSegmentsText(i);
         result.add({
-          "from": toTimestamp(fullGetSegmentT0(i) + timeOffset),
-          "to": toTimestamp(fullGetSegmentT1(i) + timeOffset),
+          "from": toTimestamp(fullGetSegmentT0(i) + (timeOffset / 10).toInt()),
+          "to": toTimestamp(fullGetSegmentT1(i) + (timeOffset / 10).toInt()),
           "text": text
         });
       }
@@ -416,7 +421,7 @@ class Whisper {
         String text = fullGetSegmentsText(i);
         stringBuffer.write("${i + 1}\n");
         stringBuffer.write(
-            "${toTimestamp(fullGetSegmentT0(i) + timeOffset, comma: true)} --> ${toTimestamp(fullGetSegmentT1(i) + timeOffset, comma: true)}\n");
+            "${toTimestamp(fullGetSegmentT0(i) + (timeOffset / 10).toInt(), comma: true)} --> ${toTimestamp(fullGetSegmentT1(i) + (timeOffset / 10).toInt(), comma: true)}\n");
         stringBuffer.write(text); // 将每段文本写入 StringBuffer
         stringBuffer.write('\n'); // 如果需要换行，可以添加换行符
       }
@@ -431,8 +436,14 @@ class Whisper {
   void getSegmentCallback(Pointer<whisper_context> ctx,
       Pointer<whisper_state> state, int nNew, Pointer<Void> userData) {
     int nSegments = fullNSegments();
+    int timeOffset = 0;
     if (lastNSegments != nSegments) {
-      result.value += output(lastNSegments, nSegments);
+      var timeData = userData.cast<WhisperTimeData4Callback>();
+      if (timeData.ref.useOriginalTime != 0) {
+        timeOffset = timeData.ref.startTime;
+      }
+
+      result.value += output(lastNSegments, nSegments, timeOffset: timeOffset);
       lastNSegments = nSegments;
     }
   }
@@ -545,6 +556,14 @@ Pointer<Uint8> allocateUint8Pointer(List<int> list) {
   return memory;
 }
 
+final class WhisperTimeData4Callback extends Struct {
+  @Int()
+  external int startTime;
+  @Int()
+  external int endTime;
+  @Int()
+  external int useOriginalTime;
+}
 // void newSegmentCallback(Pointer<whisper_context> ctx, Pointer<whisper_state> state,int nNew,Pointer<Void> userData){
 //   var whisperModel=Whisper.useCtx(ctx);
 //   var nSegments=whisperModel.fullNSegments();
