@@ -42,6 +42,7 @@ class Whisper {
   int nNew = 0;
   String outputMode;
   int lastNSegments = 0;
+  int timeOffset = 0;
   Whisper(dynamic model, whisper_context_params cparams,
       {this.outputMode = "plaintext"}) {
     if (!WhisperLibrary.loaded) {
@@ -163,10 +164,9 @@ class Whisper {
     }
 
     fullParallel(wparams, pcmf32List, numProcessors);
-
+    timeOffset = useOriginalTime ? startTime : 0;
     int nSegments = fullNSegments();
-    String result = output(0, nSegments,
-        timeOffset: useOriginalTime == true ? startTime : 0);
+    String result = output(0, nSegments);
     return result;
   }
 
@@ -373,7 +373,7 @@ class Whisper {
     _isolateSendPort?.send(null); // 通知 isolate 退出
   }
 
-  String output(int startSegment, int endSegment, {int timeOffset = 0}) {
+  String output(int startSegment, int endSegment) {
     if (outputMode == "plaintext") {
       StringBuffer stringBuffer = StringBuffer();
       for (int i = startSegment; i < endSegment; ++i) {
