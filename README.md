@@ -1,6 +1,6 @@
 # whisper4dart
 
-whisper4dart is a dart wrapper for [whisper.cpp](https://github.com/ggerganov/whisper.cpp), designed to offer an all-in-one speech recognition experience. With the built-in decoder/demuxer from ffmpeg, it can handle **most audio file** inputs, not just wav.
+whisper4dart is a dart wrapper for [whisper.cpp](https://github.com/ggerganov/whisper.cpp), designed to offer an all-in-one speech recognition experience. With the built-in decoder/demuxer from ffmpeg, it can handle **most audio/video file** inputs, not just wav.
 
 | Platform | Status |
 | :------: | :----: |
@@ -21,7 +21,7 @@ flutter pub add whisper4dart
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.0.12
+    whisper4dart:^0.0.13
 ```
 
 After that,run following command in your terminal:
@@ -71,20 +71,21 @@ Uint8List model=buffer.buffer.asUint8List();
 //and you just need to pass the file path of model to initialize whisper.
 //Like this: var model="path/to/your/model";
 
-var whisperModel=whisper.Whisper(model,cparams,outputMode:"plaintext",translate:False,initialPrompt:"",startTime:0,endTime:-1);
+var whisperModel=whisper.Whisper(model,cparams,outputMode:"plaintext");
 //initialize whisper model
 //The "outputMode" variable determines the output format. There are four options:
 //"plaintext": Outputs plain text
 //"txt": Outputs text-formatted strings
 //"json": Outputs JSON-formatted strings
 //"srt": Outputs SRT-subtitle-formatted strings
-String output=await whisperModel.infer(inputPath,logPath: logPath,numProcessors: 1);
+String output=await whisperModel.infer(inputPath,logPath: logPath,numProcessors: 1,translate:False,initialPrompt:"",startTime:0,endTime:-1,useOriginalTime:true);
 //The core function whisper.infer takes "inputPath" as the audio file path (e.g., /tmp/jfk.mp3).
 //Specifying "logPath" directs whisper4dart to save encoder/demuxer logs in that directory.
 //"translate" determines if the output should be translated into English.
 //Use "initialPrompt" to set the model's initial prompt.
-//"startTime" and "endTime" define the segment of the audio/video to process (unit: milliseconds).
+//"startTime" and "endTime" define the segment of the audio to process (unit: milliseconds).
 //Setting "endTime" to -1 means no end cropping is needed.
+//When "useOriginalTime" is set to true, the timestamps are based on the start of the original audio, not the start of the cropped audio. This means that regardless of whether the audio has //been cropped, the timestamps always reference the timeline of the original audio.
 ```
 
 Sample output strings of the four output modes:(input file:jfk.wav)

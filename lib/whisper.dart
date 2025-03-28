@@ -142,7 +142,8 @@ class Whisper {
       {String? logPath,
       int numProcessors = 1,
       int startTime = 0,
-      int endTime = -1}) async {
+      int endTime = -1,
+      bool useOriginalTime = true}) async {
     final Directory tempDirectory = await getTemporaryDirectory();
     var outputPath = path.join(tempDirectory.path, "output.pcm");
 
@@ -164,7 +165,8 @@ class Whisper {
     fullParallel(wparams, pcmf32List, numProcessors);
 
     int nSegments = fullNSegments();
-    String result = output(0, nSegments, timeOffset: startTime);
+    String result = output(0, nSegments,
+        timeOffset: useOriginalTime == true ? startTime : 0);
     return result;
   }
 
@@ -177,6 +179,7 @@ class Whisper {
       int strategy = whisper_sampling_strategy.WHISPER_SAMPLING_GREEDY,
       int startTime = 0,
       int endTime = -1,
+      bool useOriginalTime = true,
       void Function(Pointer<whisper_context>, Pointer<whisper_state>, int,
               Pointer<Void>)?
           newSegmentCallback,
@@ -200,7 +203,8 @@ class Whisper {
         logPath: logPath,
         numProcessors: numProcessors,
         startTime: startTime,
-        endTime: endTime);
+        endTime: endTime,
+        useOriginalTime: useOriginalTime);
   }
 
   ValueNotifier<String> inferStream(String inputPath,
@@ -211,6 +215,7 @@ class Whisper {
       String initialPrompt = "",
       int startTime = 0,
       int endTime = -1,
+      bool useOriginalTime = true,
       int strategy = whisper_sampling_strategy.WHISPER_SAMPLING_GREEDY}) {
     if (outputMode == "json") {
       throw Exception("JSON output is not supported for streaming yet");
@@ -225,6 +230,7 @@ class Whisper {
         strategy: strategy,
         startTime: startTime,
         endTime: endTime,
+        useOriginalTime: useOriginalTime,
         newSegmentCallback: getSegmentCallback);
 
     return result;
@@ -239,6 +245,7 @@ class Whisper {
       int strategy = whisper_sampling_strategy.WHISPER_SAMPLING_GREEDY,
       int startTime = 0,
       int endTime = -1,
+      bool useOriginalTime = true,
       void Function(Pointer<whisper_context>, Pointer<whisper_state>, int,
               Pointer<Void>)?
           newSegmentCallback,
@@ -288,6 +295,7 @@ class Whisper {
       numProcessors,
       startTime,
       endTime,
+      useOriginalTime,
       resultReceivePort.sendPort,
       rootToken
     ]);
@@ -306,7 +314,7 @@ class Whisper {
     mainSendPort.send(isolateReceivePort.sendPort);
 
     isolateReceivePort.listen((message) async {
-      if (message is List && message.length == 10) {
+      if (message is List && message.length == 11) {
         final String inputPath = message[0] as String;
         final int ctx = message[1] as int;
         final whisper_full_params wparams = message[2] as whisper_full_params;
@@ -315,13 +323,22 @@ class Whisper {
         final int numProcessors = message[5] as int;
         final int startTime = message[6] as int;
         final int endTime = message[7] as int;
-        final SendPort resultSendPort = message[8] as SendPort;
-        final RootIsolateToken rootToken = message[9] as RootIsolateToken;
+        final bool useOriginalTime = message[8] as bool;
+        final SendPort resultSendPort = message[9] as SendPort;
+        final RootIsolateToken rootToken = message[10] as RootIsolateToken;
         BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
 
         try {
-          final String subtitle = await _inferInIsolate(inputPath, ctx, wparams,
-              logPath, outputMode, numProcessors, startTime, endTime);
+          final String subtitle = await _inferInIsolate(
+              inputPath,
+              ctx,
+              wparams,
+              logPath,
+              outputMode,
+              numProcessors,
+              startTime,
+              endTime,
+              useOriginalTime);
           resultSendPort.send(subtitle);
         } catch (e) {
           print(e);
@@ -339,7 +356,8 @@ class Whisper {
       String outputMode,
       int numProcessors,
       int startTime,
-      int endTime) async {
+      int endTime,
+      bool useOriginalTime) async {
     var whisperModel =
         Whisper.useCtx(Pointer.fromAddress(ctx), outputMode: outputMode);
 
@@ -347,7 +365,8 @@ class Whisper {
         logPath: logPath,
         numProcessors: numProcessors,
         startTime: startTime,
-        endTime: endTime);
+        endTime: endTime,
+        useOriginalTime: useOriginalTime);
   }
 
   void close() {
