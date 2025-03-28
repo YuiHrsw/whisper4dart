@@ -164,7 +164,7 @@ class Whisper {
     fullParallel(wparams, pcmf32List, numProcessors);
 
     int nSegments = fullNSegments();
-    String result = output(0, nSegments);
+    String result = output(0, nSegments, timeOffset: startTime);
     return result;
   }
 
@@ -354,7 +354,7 @@ class Whisper {
     _isolateSendPort?.send(null); // 通知 isolate 退出
   }
 
-  String output(int startSegment, int endSegment) {
+  String output(int startSegment, int endSegment, {int timeOffset = 0}) {
     if (outputMode == "plaintext") {
       StringBuffer stringBuffer = StringBuffer();
       for (int i = startSegment; i < endSegment; ++i) {
@@ -374,8 +374,8 @@ class Whisper {
       for (int i = startSegment; i < endSegment; i++) {
         String text = fullGetSegmentsText(i);
         result.add({
-          "from": toTimestamp(fullGetSegmentT0(i)),
-          "to": toTimestamp(fullGetSegmentT1(i)),
+          "from": toTimestamp(fullGetSegmentT0(i) + timeOffset),
+          "to": toTimestamp(fullGetSegmentT1(i) + timeOffset),
           "text": text
         });
       }
@@ -397,7 +397,7 @@ class Whisper {
         String text = fullGetSegmentsText(i);
         stringBuffer.write("${i + 1}\n");
         stringBuffer.write(
-            "${toTimestamp(fullGetSegmentT0(i), comma: true)} --> ${toTimestamp(fullGetSegmentT1(i), comma: true)}\n");
+            "${toTimestamp(fullGetSegmentT0(i) + timeOffset, comma: true)} --> ${toTimestamp(fullGetSegmentT1(i) + timeOffset, comma: true)}\n");
         stringBuffer.write(text); // 将每段文本写入 StringBuffer
         stringBuffer.write('\n'); // 如果需要换行，可以添加换行符
       }
