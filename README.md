@@ -14,8 +14,8 @@ iOS and MacOS version of whisper4dart will be available in the near future. Howe
 
 ## Getting Started
 
-```powershell
-flutter pub add whisper4dart
+```
+   flutter pub add whisper4dart
 ```
 
 or add following line to your `pubspec.yaml`:
@@ -30,13 +30,15 @@ After that,run following command in your terminal:
 dart rum libmpv_dart:setup --platform <your-platform>
 ```
 
-For example,you need to run:`dart run libmpv_dart:setup --platform windows` if you want to setup for windows.
+(For example,you need to run:`dart run libmpv_dart:setup --platform windows` if you want to setup for windows.)
 
 And then,run:
 
 ```
 dart run whisper4dart:setup  --prebuilt
 ```
+
+
 
 Attention:If you want to build whisper.cpp by yourself instead of using prebuilt libs,run following command:
 
@@ -78,14 +80,23 @@ var whisperModel=whisper.Whisper(model,cparams,outputMode:"plaintext");
 //"txt": Outputs text-formatted strings
 //"json": Outputs JSON-formatted strings
 //"srt": Outputs SRT-subtitle-formatted strings
-String output=await whisperModel.infer(inputPath,logPath: logPath,numProcessors: 1,translate:False,initialPrompt:"",startTime:0,endTime:-1,useOriginalTime:true);
+String output=await whisperModel.infer(inputPath,
+logPath: logPath,
+numProcessors: 1,
+translate:False,
+initialPrompt:"",
+startTime:0,
+endTime:-1,
+useOriginalTime:true);
 //The core function whisper.infer takes "inputPath" as the audio file path (e.g., /tmp/jfk.mp3).
 //Specifying "logPath" directs whisper4dart to save encoder/demuxer logs in that directory.
 //"translate" determines if the output should be translated into English.
 //Use "initialPrompt" to set the model's initial prompt.
 //"startTime" and "endTime" define the segment of the audio to process (unit: milliseconds).
 //Setting "endTime" to -1 means no end cropping is needed.
-//When "useOriginalTime" is set to true, the timestamps are based on the start of the original audio, not the start of the cropped audio. This means that regardless of whether the audio has //been cropped, the timestamps always reference the timeline of the original audio.
+//When "useOriginalTime" is set to true, the timestamps are based on the start of the original audio, 
+//not the start of the cropped audio. This means that regardless of whether the audio has 
+//been cropped, the timestamps always reference the timeline of the original audio.
 ```
 
 Sample output strings of the four output modes:(input file:jfk.wav)
