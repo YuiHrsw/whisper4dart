@@ -23,7 +23,8 @@ Future<String> inference(String inputPath) async {
   var buffer = await rootBundle.load("assets/ggml-base.en.bin");
   Uint8List model = buffer.buffer.asUint8List();
   var cparams = whisper.createContextDefaultParams();
-  var whisperModel = whisper.Whisper(model, cparams, outputMode: "plaintext");
+  var whisperModel = whisper.Whisper(model, cparams,
+      outputMode: "plaintext", initMode: "late");
   return whisperModel.inferIsolate(inputPath,
       logPath: logPath, numProcessors: 1, startTime: 3000);
 }
@@ -42,7 +43,7 @@ Future<ValueNotifier<String>> inferenceStream(String inputPath) async {
   var cparams = whisper.createContextDefaultParams();
   var whisperModel = whisper.Whisper(model, cparams, outputMode: "plaintext");
   return whisperModel.inferStream(inputPath,
-      logPath: logPath, numProcessors: 1, startTime: 3000);
+      logPath: logPath, numProcessors: 1, startTime: 0);
 }
 
 class MyApp extends StatefulWidget {

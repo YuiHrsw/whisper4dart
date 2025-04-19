@@ -21,7 +21,7 @@ iOS and MacOS version of whisper4dart will be available in the near future. Howe
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.1.0
+    whisper4dart:^0.1.1
 ```
 
 After that,run following command in your terminal:
@@ -37,8 +37,6 @@ And then,run:
 ```
 dart run whisper4dart:setup  --prebuilt
 ```
-
-
 
 Attention:If you want to build whisper.cpp by yourself instead of using prebuilt libs,run following command:
 

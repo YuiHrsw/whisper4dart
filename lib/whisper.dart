@@ -16,6 +16,8 @@ import 'package:whisper4dart/other.dart';
 import 'whisper4dart_bindings_generated.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:json_annotation/json_annotation.dart';
+part 'whisper.g.dart';
 
 /// A very short-lived native function.
 ///
@@ -34,17 +36,64 @@ import 'package:flutter/services.dart';
 /// 1. Reuse a single isolate for various different kinds of requests.
 /// 2. Use multiple helper isolates for parallel execution.
 
+@JsonSerializable()
 class Whisper {
-  late Pointer<whisper_context> ctx;
+  @JsonKey(fromJson: _ctxFromJson, toJson: _ctxToJson)
+  Pointer<whisper_context> ctx = nullptr;
   SendPort? _isolateSendPort;
   int get handle => ctx.address;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   ValueNotifier<String> result = ValueNotifier("");
   int nNew = 0;
   String outputMode;
   int lastNSegments = 0;
   int timeOffset = 0;
-  Whisper(dynamic model, whisper_context_params cparams,
-      {this.outputMode = "plaintext"}) {
+  dynamic model;
+  @JsonKey(fromJson: _contextParamsFromJson, toJson: _contextParamsToJson)
+  whisper_context_params cparams;
+  String initMode;
+  int startTime = 0;
+  int endTime = -1;
+
+  static _ctxFromJson(int address) {
+    Pointer<whisper_context> ctx = Pointer.fromAddress(address);
+    return ctx;
+  }
+
+  static int _ctxToJson(Pointer<whisper_context> ctx) {
+    int address = ctx.address;
+    return address;
+  }
+
+  static whisper_context_params _contextParamsFromJson(Uint8List buffer) {
+    Pointer<Uint8> contextParamsList =
+        calloc<whisper_context_params>().cast<Uint8>();
+    contextParamsList
+        .asTypedList(sizeOf<whisper_context_params>())
+        .setAll(0, buffer);
+    Pointer<whisper_context_params> contextParams =
+        contextParamsList.cast<whisper_context_params>();
+    return contextParams.ref;
+  }
+
+  static Uint8List _contextParamsToJson(whisper_context_params contextParams) {
+    int structSize = sizeOf<whisper_context_params>();
+    Pointer<whisper_context_params> contextParamsTmp =
+        calloc<whisper_context_params>();
+    contextParamsTmp.ref = contextParams;
+    Pointer<Uint8> contextParamsList = contextParamsTmp.cast<Uint8>();
+    Uint8List buffer = contextParamsList.asTypedList(structSize);
+    return buffer;
+  }
+
+  factory Whisper.fromJson(Map<String, dynamic> json) =>
+      _$WhisperFromJson(json);
+
+  // 将User实例转换为JSON的方法
+  Map<String, dynamic> toJson() => _$WhisperToJson(this);
+
+  Whisper(this.model, this.cparams,
+      {this.outputMode = "plaintext", this.initMode = "late"}) {
     if (!WhisperLibrary.loaded) {
       if (!WhisperLibrary.flagFirst) {
         WhisperLibrary.init();
@@ -52,6 +101,13 @@ class Whisper {
         throw Exception('libwhisper is not loaded!');
       }
     }
+
+    if (initMode == "normal") {
+      initModel();
+    }
+  }
+
+  void initModel() {
     if (model is String) {
       ctx = WhisperLibrary.binding.whisper_init_from_file_with_params(
           model.toNativeUtf8().cast<Char>(), cparams);
@@ -62,17 +118,6 @@ class Whisper {
     } else {
       throw Exception("Invalid mode");
     }
-  }
-  Whisper.useCtx(Pointer<whisper_context> context,
-      {this.outputMode = "plaintext"}) {
-    if (!WhisperLibrary.loaded) {
-      if (!WhisperLibrary.flagFirst) {
-        WhisperLibrary.init();
-      } else {
-        throw Exception('libwhisper is not loaded!');
-      }
-    }
-    ctx = context;
   }
 
   void full(whisper_full_params wparams, List<double> pcmf32List) {
@@ -140,11 +185,11 @@ class Whisper {
   }
 
   Future<String> _infer(String inputPath, whisper_full_params wparams,
-      {String? logPath,
-      int numProcessors = 1,
-      int startTime = 0,
-      int endTime = -1,
-      bool useOriginalTime = true}) async {
+      {String? logPath, int numProcessors = 1}) async {
+    if (initMode != "normal") {
+      initModel();
+    }
+
     final Directory tempDirectory = await getTemporaryDirectory();
     var outputPath = path.join(tempDirectory.path, "output.pcm");
 
@@ -164,7 +209,7 @@ class Whisper {
     }
 
     fullParallel(wparams, pcmf32List, numProcessors);
-    timeOffset = useOriginalTime ? startTime : 0;
+
     int nSegments = fullNSegments();
     String result = output(0, nSegments, timeOffset: timeOffset);
     return result;
@@ -199,12 +244,15 @@ class Whisper {
     if (initialPrompt != "") {
       wparams.initial_prompt = initialPrompt.toNativeUtf8().cast<Char>();
     }
-    return _infer(inputPath, wparams,
-        logPath: logPath,
-        numProcessors: numProcessors,
-        startTime: startTime,
-        endTime: endTime,
-        useOriginalTime: useOriginalTime);
+    this.startTime = startTime;
+    this.endTime = endTime;
+    timeOffset = useOriginalTime ? startTime : 0;
+    return _infer(
+      inputPath,
+      wparams,
+      logPath: logPath,
+      numProcessors: numProcessors,
+    );
   }
 
   ValueNotifier<String> inferStream(String inputPath,
@@ -220,23 +268,20 @@ class Whisper {
     if (outputMode == "json") {
       throw Exception("JSON output is not supported for streaming yet");
     }
-    Pointer<WhisperTimeData4Callback> timeData4Callback =
-        calloc<WhisperTimeData4Callback>();
-    timeData4Callback.ref.startTime = startTime;
-    timeData4Callback.ref.endTime = endTime;
-    timeData4Callback.ref.useOriginalTime = useOriginalTime ? 1 : 0;
-    inferIsolate(inputPath,
-        logPath: logPath,
-        numProcessors: numProcessors,
-        language: language,
-        translate: translate,
-        initialPrompt: initialPrompt,
-        strategy: strategy,
-        startTime: startTime,
-        endTime: endTime,
-        useOriginalTime: useOriginalTime,
-        newSegmentCallback: getSegmentCallback,
-        newSegmentCallbackUserData: timeData4Callback.cast<Void>());
+
+    inferIsolate(
+      inputPath,
+      logPath: logPath,
+      numProcessors: numProcessors,
+      language: language,
+      translate: translate,
+      initialPrompt: initialPrompt,
+      strategy: strategy,
+      startTime: startTime,
+      endTime: endTime,
+      useOriginalTime: useOriginalTime,
+      newSegmentCallback: getSegmentCallback,
+    );
 
     return result;
   }
@@ -271,6 +316,9 @@ class Whisper {
     if (initialPrompt != "") {
       wparams.initial_prompt = initialPrompt.toNativeUtf8().cast<Char>();
     }
+    this.startTime = startTime;
+    this.endTime = endTime;
+    timeOffset = useOriginalTime ? startTime : 0;
 
     // 确保 isolate 已经启动
     if (_isolateSendPort == null) {
@@ -291,16 +339,13 @@ class Whisper {
 
     var rootToken = RootIsolateToken.instance!;
     final ReceivePort resultReceivePort = ReceivePort();
+    Map<String, dynamic> whisper2Json = toJson();
     _isolateSendPort?.send([
+      whisper2Json,
       inputPath,
-      ctx.address,
-      wparams,
       logPath,
-      outputMode,
       numProcessors,
-      startTime,
-      endTime,
-      useOriginalTime,
+      wparams,
       resultReceivePort.sendPort,
       rootToken
     ]);
@@ -319,31 +364,25 @@ class Whisper {
     mainSendPort.send(isolateReceivePort.sendPort);
 
     isolateReceivePort.listen((message) async {
-      if (message is List && message.length == 11) {
-        final String inputPath = message[0] as String;
-        final int ctx = message[1] as int;
-        final whisper_full_params wparams = message[2] as whisper_full_params;
-        final String logPath = message[3] as String;
-        final String outputMode = message[4] as String;
-        final int numProcessors = message[5] as int;
-        final int startTime = message[6] as int;
-        final int endTime = message[7] as int;
-        final bool useOriginalTime = message[8] as bool;
-        final SendPort resultSendPort = message[9] as SendPort;
-        final RootIsolateToken rootToken = message[10] as RootIsolateToken;
+      if (message is List && message.length == 7) {
+        final Map<String, dynamic> whisper2Json =
+            message[0] as Map<String, dynamic>;
+        final String inputPath = message[1] as String;
+        final String logPath = message[2] as String;
+        final int numProcessors = message[3] as int;
+        final whisper_full_params wparams = message[4] as whisper_full_params;
+        final SendPort resultSendPort = message[5] as SendPort;
+        final RootIsolateToken rootToken = message[6] as RootIsolateToken;
         BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
 
         try {
           final String subtitle = await _inferInIsolate(
-              inputPath,
-              ctx,
-              wparams,
-              logPath,
-              outputMode,
-              numProcessors,
-              startTime,
-              endTime,
-              useOriginalTime);
+            whisper2Json,
+            inputPath,
+            logPath,
+            numProcessors,
+            wparams,
+          );
           resultSendPort.send(subtitle);
         } catch (e) {
           print(e);
@@ -354,24 +393,25 @@ class Whisper {
   }
 
   static Future<String> _inferInIsolate(
-      String inputPath,
-      int ctx,
-      whisper_full_params wparams,
-      String logPath,
-      String outputMode,
-      int numProcessors,
-      int startTime,
-      int endTime,
-      bool useOriginalTime) async {
-    var whisperModel =
-        Whisper.useCtx(Pointer.fromAddress(ctx), outputMode: outputMode);
+    Map<String, dynamic> whisper2Json,
+    String inputPath,
+    String logPath,
+    int numProcessors,
+    whisper_full_params wparams,
+  ) {
+    var whisperModel = Whisper.fromJson(whisper2Json);
 
-    return whisperModel._infer(inputPath, wparams,
-        logPath: logPath,
-        numProcessors: numProcessors,
-        startTime: startTime,
-        endTime: endTime,
-        useOriginalTime: useOriginalTime);
+    if (whisperModel.ctx == nullptr || whisperModel.initMode != "normal") {
+      whisperModel.initModel();
+    }
+    print(whisperModel.startTime);
+    print(whisperModel.endTime);
+    return whisperModel._infer(
+      inputPath,
+      wparams,
+      logPath: logPath,
+      numProcessors: numProcessors,
+    );
   }
 
   void close() {
@@ -435,14 +475,13 @@ class Whisper {
 
   void getSegmentCallback(Pointer<whisper_context> ctx,
       Pointer<whisper_state> state, int nNew, Pointer<Void> userData) {
-    int nSegments = fullNSegments();
-    int timeOffset = 0;
-    if (lastNSegments != nSegments) {
-      var timeData = userData.cast<WhisperTimeData4Callback>();
-      if (timeData.ref.useOriginalTime != 0) {
-        timeOffset = timeData.ref.startTime;
-      }
+    if (this.ctx == nullptr) {
+      this.ctx = ctx;
+    }
 
+    int nSegments = WhisperLibrary.binding.whisper_full_n_segments(ctx);
+
+    if (lastNSegments != nSegments) {
       result.value += output(lastNSegments, nSegments, timeOffset: timeOffset);
       lastNSegments = nSegments;
     }

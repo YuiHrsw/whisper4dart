@@ -1,6 +1,6 @@
 name: whisper4dart
 description: "A Dart wrapper for whisper.cpp"
-version: 0.1.0
+version: 0.1.1
 homepage:
 
 environment:
@@ -20,6 +20,8 @@ dependencies:
   archive: ^3.4.10
   package_config: ^2.1.0
   provider: ^6.0.4
+  json_annotation: ^4.8.0
+
 
 
  
@@ -31,6 +33,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  json_serializable: ^6.9.0
+  build_runner: ^2.4.6
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
