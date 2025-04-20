@@ -21,7 +21,7 @@ iOS and MacOS version of whisper4dart will be available in the near future. Howe
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.1.2
+    whisper4dart:^0.1.3
 ```
 
 After that,run following command in your terminal:

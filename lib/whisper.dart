@@ -113,12 +113,14 @@ class Whisper {
 
   void initModel() {
     if (model is String) {
+      final modelString = model as String;
       ctx = WhisperLibrary.binding.whisper_init_from_file_with_params(
-          model.toNativeUtf8().cast<Char>(), cparams);
+          modelString.toNativeUtf8().cast<Char>(), cparams);
     } else if (model is Uint8List) {
-      var ptr = allocateUint8Pointer(model);
+      final modelList = model as Uint8List;
+      var ptr = allocateUint8Pointer(modelList);
       ctx = WhisperLibrary.binding.whisper_init_from_buffer_with_params(
-          ptr.cast(), model.length, cparams);
+          ptr.cast(), modelList.length, cparams);
     } else {
       throw Exception("Invalid mode");
     }
@@ -408,8 +410,7 @@ class Whisper {
     if (whisperModel.ctx == nullptr || whisperModel.initMode != "normal") {
       whisperModel.initModel();
     }
-    print(whisperModel.startTime);
-    print(whisperModel.endTime);
+
     return whisperModel._infer(
       inputPath,
       wparams,
