@@ -93,7 +93,9 @@ class Whisper {
   Map<String, dynamic> toJson() => _$WhisperToJson(this);
 
   Whisper(this.model, this.cparams,
-      {this.outputMode = "plaintext", this.initMode = "late"}) {
+      {this.outputMode = "plaintext",
+      this.initMode = "late",
+      ValueNotifier<String>? externalNotifier}) {
     if (!WhisperLibrary.loaded) {
       if (!WhisperLibrary.flagFirst) {
         WhisperLibrary.init();
@@ -101,7 +103,9 @@ class Whisper {
         throw Exception('libwhisper is not loaded!');
       }
     }
-
+    if (externalNotifier != null) {
+      result = externalNotifier;
+    }
     if (initMode == "normal") {
       initModel();
     }
