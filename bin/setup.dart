@@ -176,12 +176,52 @@ for (var file in archive) {
     // 删除下载的ZIP文件
     await file.delete();
     print('ZIP file deleted');
+    var iosPath=path.join(pluginRootPath,"..","ios");
+    var macosPath=path.join(pluginRootPath,"..","macos");
+  var frameworkPath=path.join(newPath,"apple");
+  copyFiles(frameworkPath, iosPath);
+  copyFiles(frameworkPath, macosPath);
+  
   } else {
     print('Failed to download file: ${response.statusCode}');
   }
+
+
 }
 
+void copyFiles(String sourceDirPath, String targetDirPath) {
+  // 获取源目录对象
+  Directory sourceDir = Directory(sourceDirPath);
+  // 获取目标目录对象
+  Directory targetDir = Directory(targetDirPath);
 
+  // 检查源目录是否存在
+  if (!sourceDir.existsSync()) {
+    print('源目录不存在！');
+    return;
+  }
+
+  // 如果目标目录不存在，则创建目标目录
+  if (!targetDir.existsSync()) {
+    targetDir.createSync(recursive: true);
+  }
+
+  // 遍历源目录中的所有文件和子目录
+  for (FileSystemEntity entity in sourceDir.listSync()) {
+    // 如果是文件，则复制文件
+    if (entity is File) {
+      File file = entity;
+      String fileName = file.path.split('/').last;
+      File targetFile = File('${targetDir.path}/$fileName');
+      file.copySync(targetFile.path);
+    }
+    // 如果是目录，则递归调用此函数拷贝子目录
+    else if (entity is Directory) {
+      String subDirName = entity.path.split('/').last;
+      copyFiles(entity.path, '${targetDir.path}/$subDirName');
+    }
+  }
+}
 
 
 void main(List<String> arguments) async {
@@ -189,7 +229,7 @@ void main(List<String> arguments) async {
   String command = arguments[0];
   if(command=="--source"){
     setupSrc();
-    print('Attention: In current version of whisper4dart, even though you have set it to use source code compilation, the Android platform will still automatically use precompiled libraries. This will be changed in a later version.');
+    print('Attention: In current version of whisper4dart, even though you have set it to use source code compilation, the Android iOS and MacOS platform will still automatically use precompiled libraries. This will be changed in a later version.');
   }
   else if(command=="--prebuilt"){
     setupPrebuilt();
