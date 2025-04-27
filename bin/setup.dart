@@ -190,35 +190,29 @@ for (var file in archive) {
 }
 
 void copyFiles(String sourceDirPath, String targetDirPath) {
-  // 获取源目录对象
   Directory sourceDir = Directory(sourceDirPath);
-  // 获取目标目录对象
   Directory targetDir = Directory(targetDirPath);
 
-  // 检查源目录是否存在
   if (!sourceDir.existsSync()) {
     print('源目录不存在！');
     return;
   }
 
-  // 如果目标目录不存在，则创建目标目录
   if (!targetDir.existsSync()) {
     targetDir.createSync(recursive: true);
   }
 
-  // 遍历源目录中的所有文件和子目录
   for (FileSystemEntity entity in sourceDir.listSync()) {
-    // 如果是文件，则复制文件
+    // 使用 path.basename 获取文件或目录的名称
+    String name = path.basename(entity.path);
+    String targetPath = path.join(targetDir.path, name);
+
     if (entity is File) {
       File file = entity;
-      String fileName = file.path.split('/').last;
-      File targetFile = File('${targetDir.path}/$fileName');
-      file.copySync(targetFile.path);
-    }
-    // 如果是目录，则递归调用此函数拷贝子目录
-    else if (entity is Directory) {
-      String subDirName = entity.path.split('/').last;
-      copyFiles(entity.path, '${targetDir.path}/$subDirName');
+      File(targetPath).writeAsBytesSync(file.readAsBytesSync());
+    } else if (entity is Directory) {
+      // 如果是目录，则递归调用此函数拷贝子目录
+      copyFiles(entity.path, targetPath);
     }
   }
 }
